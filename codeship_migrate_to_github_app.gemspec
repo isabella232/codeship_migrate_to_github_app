@@ -27,7 +27,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
   spec.add_development_dependency "cucumber", "~> 2.4.0"
-  spec.add_development_dependency "aruba"
+  spec.add_development_dependency "aruba", "~> 0.14.6"
+  spec.add_development_dependency "webmock", "~> 3.4.2"
 
   spec.add_dependency "thor", "~> 0.20.0"
 end

@@ -1,6 +1,7 @@
 require "bundler/setup"
 require "codeship_migrate_to_github_app"
 require "aruba/rspec"
+require 'webmock/rspec'
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
