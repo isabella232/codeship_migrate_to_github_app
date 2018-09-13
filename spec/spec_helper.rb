@@ -1,7 +1,7 @@
 require "bundler/setup"
 require "codeship_migrate_to_github_app"
-require "aruba/rspec"
-require 'webmock/rspec'
+require "webmock/rspec"
+require "pry"
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
@@ -13,4 +13,11 @@ RSpec.configure do |config|
   config.expect_with :rspec do |c|
     c.syntax = :expect
   end
+
+  config.before do
+    allow($stdout).to receive(:puts)
+    allow($stderr).to receive(:puts)
+  end
+
+  WebMock.disable_net_connect!
 end
