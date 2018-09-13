@@ -4,7 +4,7 @@ require "http"
 module CodeshipMigrateToGithubApp
   class CLI < Thor
 
-    attr_accessor :codeship_token, :github_org_id, :github_installation_id
+    attr_accessor :codeship_token, :github_org, :github_installation_id
 
     def self.exit_on_failure?
       true
@@ -42,19 +42,18 @@ module CodeshipMigrateToGithubApp
         end
       end
 
-      def validate_github_credentials_and_org(token, org)
+      def validate_github_credentials_and_org(token, org_name)
         response = HTTP.headers(accept: "application/vnd.github.v3+json").auth("token #{token}").get("https://api.github.com/user/orgs")
         if response.code == 200
-          # Need to rework this... match org name AND get org_id at same point
-          organizations = response.parse.collect{|org| org['login'].downcase }
-          if organizations.include?(org.downcase)
-            # record org id
-          else
-            raise Thor::Error.new "Github organization not found in authorized orgs: #{organizations.join(', ')}"
-          end
+          @github_org = fetch_github_org(response, org_name)
         else
           raise Thor::Error.new "Error authenticating to Github: #{response.code}: #{response.to_s}"
         end
+      end
+
+      def fetch_github_org(response, org_name)
+        error = lambda {raise Thor::Error.new "Github organization #{org_name} not found in authorized orgs"}
+        response.parse.find(error) { |org| org["login"] == org_name.downcase  }
       end
 
     end

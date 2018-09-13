@@ -71,7 +71,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       let(:github_org) { "Vandelay" }
 
       it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Github organization not found in authorized orgs")).to_stderr  }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Github organization #{github_org} not found in authorized orgs")).to_stderr  }
     end
   end
 end
