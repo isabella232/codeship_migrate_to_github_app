@@ -18,7 +18,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
                 "--codeship-pass=#{codeship_pass}",
                 "--github-org=#{github_org}",
                 "--github-token=#{github_token}"]
-             }
+            }
 
   let(:command) { CodeshipMigrateToGithubApp::CLI.start(args) }
 
@@ -26,18 +26,18 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
     {
         codeship_auth: "https://api.codeship.com/v2/auth",
         github_orgs: "https://api.github.com/user/orgs"
-    }
+   }
   end
 
   describe "#start" do
     before(:each) do
-      stub_request(:post, urls[:codeship_auth]).to_return(status: 200, headers: JSON_TYPE, body: '{"access_token": "abc123"}')
+      stub_request(:post, urls[:codeship_auth]).to_return(status: 200, headers: JSON_TYPE, body: '{"access_token": "abc123", "organizations":[{"uuid":"86ca6be0-413d-0134-079f-1e81b891aacf","name":"joshco"},{"uuid":"c00d11a0-383b-0136-dfac-0aa9c93fd8f3","name":"partial-match-76"}]}')
       stub_request(:get, urls[:github_orgs]).to_return(status: 200, headers: JSON_TYPE, body: '[{"login": "joshco", "id": 123, "url": "https://api.github.com/orgs/joshco"}]')
     end
 
     context "valid arguments" do
       it { expect{command}.to_not raise_error }
-      it { expect{command}.to output(a_string_including("Hello world!")).to_stdout  }
+      it { expect{command}.to output(a_string_including("Migrated!")).to_stdout }
     end
 
     context "codeship username not found" do
@@ -46,7 +46,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       end
 
       it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to CodeShip: 401")).to_stderr  }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to CodeShip: 401")).to_stderr }
     end
 
     context "codeship password wrong" do
@@ -55,7 +55,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       end
 
       it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to CodeShip: 401")).to_stderr  }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to CodeShip: 401")).to_stderr }
     end
 
     context "invalid Github token" do
@@ -64,14 +64,38 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       end
 
       it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to Github: 401")).to_stderr  }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to Github: 401")).to_stderr }
     end
 
     context "invalid Github organization" do
       let(:github_org) { "Vandelay" }
 
       it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Github organization #{github_org} not found in authorized orgs")).to_stderr  }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Github organization #{github_org} not found in authorized orgs")).to_stderr }
+    end
+
+    context "codeship org name provided" do
+      before(:each) { args <<  "--codeship-org=#{codeship_org}" }
+      context "codeship org name exactly found" do
+        let(:codeship_org) { "joshco" }
+
+        it { expect{command}.to_not raise_error }
+        it { expect{command}.to output(a_string_including("Migrated!")).to_stdout }
+      end
+
+      context "codeship org name partially found" do
+        let(:codeship_org) { "partial" }
+
+        it { expect{command}.to_not raise_error }
+        it { expect{command}.to output(a_string_including("Migrated!")).to_stdout }
+      end
+
+      context "codeship org name not found" do
+        let(:codeship_org) { "foobar" }
+
+        it { expect{command}.to raise_error(SystemExit) }
+        it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("CodeShip organization #{codeship_org} not found in this users organizations")).to_stderr }
+      end
     end
   end
 end
