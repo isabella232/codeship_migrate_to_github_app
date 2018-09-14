@@ -9,8 +9,9 @@ module CodeshipMigrateToGithubApp
 
     CODESHIP_AUTH_URL = "https://api.codeship.com/v2/auth"
     GITHUB_ORGS_URL = "https://api.github.com/user/orgs"
+    CODESHIP_MIGRATION_INFO_URL = "https://api.codeship.com/v2/github_migration_info"
 
-    attr_accessor :codeship_token, :github_org
+    attr_accessor :codeship_token, :github_org, :codeship_migration_info
 
     def self.exit_on_failure?
       true
@@ -27,7 +28,7 @@ module CodeshipMigrateToGithubApp
     def start
       validate_github_credentials(options[:github_token])
       fetch_codeship_token(options[:codeship_user], options[:codeship_pass])
-      # fetch_migration_info
+      fetch_migration_info
       # migrate
       puts "Migrated!"
     end
@@ -51,9 +52,31 @@ module CodeshipMigrateToGithubApp
 
       def fetch_migration_info
         # Call private api on Mothership, get pairs of installation_id/repo_id
+        response = HTTP.headers(accept: CODESHIP_JSON_HEADER).auth("token #{@codeship_token}").get(CODESHIP_MIGRATION_INFO_URL)
+        unless response.code == 200
+          raise Thor::Error.new "Error retreiving migration info from CodeShip: #{response.code}: #{response.to_s}"
+        end
       end
 
       def migrate
+        # Think codeship_migration_info will look like:
+        # [
+        #   {
+        #   "installation_id": "123",
+        #   "repositories": [
+        #     { "repository_id": "7777" },
+        #     { "repository_id": "8888" }
+        #   ]
+        #   },
+        #   {
+        #     "installation_id": "456",
+        #     "repositories": [
+        #       { "repository_id": "9999" }
+        #     ]
+        #   }
+        # ]
+
+
         # for each installation_id/repo_id in @codeship_migration_info
         #   install github app
         # end
