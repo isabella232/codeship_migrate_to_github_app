@@ -13,11 +13,13 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
   let(:codeship_pass) { "s3cr3t" }
   let(:github_org) { "joshco" }
   let(:github_token) { "abc123" }
+  let(:codeship_org) { "joshco" }
 
   let(:args) { ["start", "--codeship-user=#{codeship_user}",
                 "--codeship-pass=#{codeship_pass}",
                 "--github-org=#{github_org}",
-                "--github-token=#{github_token}"]
+                "--github-token=#{github_token}",
+                "--codeship-org=#{codeship_org}" ]
             }
 
   let(:command) { CodeshipMigrateToGithubApp::CLI.start(args) }
@@ -74,28 +76,11 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Github organization #{github_org} not found in authorized orgs")).to_stderr }
     end
 
-    context "codeship org name provided" do
-      before(:each) { args <<  "--codeship-org=#{codeship_org}" }
-      context "codeship org name exactly found" do
-        let(:codeship_org) { "joshco" }
+    context "invalid Codeship org name" do
+      let(:codeship_org) { "foobar" }
 
-        it { expect{command}.to_not raise_error }
-        it { expect{command}.to output(a_string_including("Migrated!")).to_stdout }
-      end
-
-      context "codeship org name partially found" do
-        let(:codeship_org) { "partial" }
-
-        it { expect{command}.to_not raise_error }
-        it { expect{command}.to output(a_string_including("Migrated!")).to_stdout }
-      end
-
-      context "codeship org name not found" do
-        let(:codeship_org) { "foobar" }
-
-        it { expect{command}.to raise_error(SystemExit) }
-        it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("CodeShip organization #{codeship_org} not found in this users organizations")).to_stderr }
-      end
+      it { expect{command}.to raise_error(SystemExit) }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("CodeShip organization #{codeship_org} not found in this users organizations")).to_stderr }
     end
   end
 end
