@@ -11,15 +11,11 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
 
   let(:codeship_user) { "josh" }
   let(:codeship_pass) { "s3cr3t" }
-  let(:github_org) { "joshco" }
   let(:github_token) { "abc123" }
-  let(:codeship_org) { "joshco" }
 
   let(:args) { ["start", "--codeship-user=#{codeship_user}",
                 "--codeship-pass=#{codeship_pass}",
-                "--github-org=#{github_org}",
-                "--github-token=#{github_token}",
-                "--codeship-org=#{codeship_org}" ]
+                "--github-token=#{github_token}" ]
             }
 
   let(:command) { CodeshipMigrateToGithubApp::CLI.start(args) }
@@ -67,20 +63,6 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
 
       it { expect{command}.to raise_error(SystemExit) }
       it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error authenticating to Github: 401")).to_stderr }
-    end
-
-    context "invalid Github organization" do
-      let(:github_org) { "Vandelay" }
-
-      it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Github organization #{github_org} not found in authorized orgs")).to_stderr }
-    end
-
-    context "invalid Codeship org name" do
-      let(:codeship_org) { "foobar" }
-
-      it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("CodeShip organization #{codeship_org} not found in this users organizations")).to_stderr }
     end
   end
 end
