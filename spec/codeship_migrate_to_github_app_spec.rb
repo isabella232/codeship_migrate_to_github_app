@@ -24,7 +24,8 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
     {
         codeship_auth: "https://api.codeship.com/v2/auth",
         github_orgs: "https://api.github.com/user/orgs",
-        codeship_migration: "https://api.codeship.com/v2/github_migration_info"
+        codeship_migration: "https://api.codeship.com/v2/github_migration_info",
+        github_install: Addressable::Template.new("https://api.github.com/user/installations/{installation_id}/repositories/{repository_id}")
    }
   end
 
@@ -32,12 +33,16 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
     before(:each) do
       stub_request(:post, urls[:codeship_auth]).to_return(status: 200, headers: JSON_TYPE, body: '{"access_token": "abc123", "organizations":[{"uuid":"86ca6be0-413d-0134-079f-1e81b891aacf","name":"joshco"},{"uuid":"c00d11a0-383b-0136-dfac-0aa9c93fd8f3","name":"partial-match-76"}]}')
       stub_request(:get, urls[:github_orgs]).to_return(status: 200, headers: JSON_TYPE, body: '[{"login": "joshco", "id": 123, "url": "https://api.github.com/orgs/joshco"}]')
-      stub_request(:get, urls[:codeship_migration]).to_return(status: 200, headers: JSON_TYPE, body: '[{"installation_id":"123","repositories":[{"repository_id":"7777"},{"repository_id":"8888"}]},{"installation_id":"456","repositories":[{"repository_id":"9999"}]}]')
+      stub_request(:get, urls[:codeship_migration]).to_return(status: 200, headers: JSON_TYPE, body: '[{"installation_id":"123","repositories":[{"repository_id":"7777","repository_name":"foo/bar"},{"repository_id":"8888","repository_name":"foo/foo"}]},{"installation_id":"456","repositories":[{"repository_id":"9999","repository_name":"bar/bar"}]}]')
+      stub_request(:put, urls[:github_install]).to_return(status: 204, headers: JSON_TYPE, body: '')
     end
 
     context "valid arguments" do
       it { expect{command}.to_not raise_error }
-      it { expect{command}.to output(a_string_including("Migrated!")).to_stdout }
+      it { expect(command).to have_requested(:put, "https://api.github.com/user/installations/123/repositories/7777").once }
+      it { expect(command).to have_requested(:put, "https://api.github.com/user/installations/123/repositories/8888").once }
+      it { expect(command).to have_requested(:put, "https://api.github.com/user/installations/456/repositories/9999").once }
+      it { expect{command}.to output(a_string_including("Migration complete!")).to_stdout }
     end
 
     context "codeship username not found" do
@@ -74,6 +79,39 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
 
       it { expect{command}.to raise_error(SystemExit) }
       it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error retreiving migration info from CodeShip: 500")).to_stderr }
+    end
+
+    context "error performing migration on a repo" do
+      before(:each) do
+        stub_request(:put, "https://api.github.com/user/installations/123/repositories/8888").to_return(status: 500, headers: JSON_TYPE, body: nil)
+      end
+
+      it { expect{command}.to_not raise_error }
+      it { expect{command}.to output(a_string_including("Couldn't install the CodeShip Github app for some repositories")).to_stdout }
+      it { expect{command}.to output(a_string_including("Error migrating the following repos:")).to_stdout }
+      it { expect{command}.to output(a_string_including("foo/foo")).to_stdout }
+      it { expect{command}.to output(a_string_including("Migration complete!")).to_stdout }
+    end
+
+    context "not found error/not authorized during installation" do
+      before(:each) do
+        stub_request(:put, "https://api.github.com/user/installations/123/repositories/8888").to_return(status: 404, headers: JSON_TYPE, body: nil)
+      end
+
+      it { expect{command}.to_not raise_error }
+      it { expect{command}.to output(a_string_including("Couldn't install the CodeShip Github app for some repositories")).to_stdout }
+      it { expect{command}.to output(a_string_including("Error migrating the following repos:")).to_stdout }
+      it { expect{command}.to output(a_string_including("foo/foo")).to_stdout }
+      it { expect{command}.to output(a_string_including("Migration complete!")).to_stdout }
+    end
+
+    context "no repos to migrate" do
+      before(:each) do
+        stub_request(:get, urls[:codeship_migration]).to_return(status: 200, headers: JSON_TYPE, body: '[]')
+      end
+
+      it { expect{command}.to_not raise_error }
+      it { expect{command}.to output(a_string_including("No repositories found needed migration")).to_stdout }
     end
   end
 end
