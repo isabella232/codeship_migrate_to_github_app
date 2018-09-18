@@ -74,9 +74,9 @@ module CodeshipMigrateToGithubApp
             response = HTTP.headers(accept: GITHUB_INSTALLATIONS_PREVIEW_HEADER)
                            .auth("token #{@github_token}")
                            .put(github_install_url(installation["installation_id"], repo["repository_id"]))
-              unless response.code == 204
-                @errors << repo["repository_name"]
-              end
+            unless response.code == 204
+              @errors << repo["repository_name"]
+            end
           end
         end
       end
