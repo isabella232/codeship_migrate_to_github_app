@@ -71,7 +71,9 @@ module CodeshipMigrateToGithubApp
       def migrate
         @codeship_migration_info.each do |installation|
           installation["repositories"].each do |repo|
-            response = HTTP.headers(accept: GITHUB_INSTALLATIONS_PREVIEW_HEADER).auth("token #{@github_token}").put(github_install_url(installation["installation_id"], repo["repository_id"]))
+            response = HTTP.headers(accept: GITHUB_INSTALLATIONS_PREVIEW_HEADER)
+                           .auth("token #{@github_token}")
+                           .put(github_install_url(installation["installation_id"], repo["repository_id"]))
               unless response.code == 204
                 @errors << repo["repository_name"]
               end
