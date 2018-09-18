@@ -60,7 +60,6 @@ module CodeshipMigrateToGithubApp
       end
 
       def fetch_migration_info
-        # Call private api on Mothership, get pairs of installation_id/repo_id
         response = HTTP.headers(accept: CODESHIP_JSON_HEADER).auth("token #{@codeship_token}").get(CODESHIP_MIGRATION_INFO_URL)
         unless response.code == 200
           raise Thor::Error.new "Error retrieving migration info from CodeShip: #{response.code}: #{response.to_s}"
