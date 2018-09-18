@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'spec_helper'
 
 RSpec.describe CodeshipMigrateToGithubApp do
@@ -111,7 +113,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       end
 
       it { expect{command}.to_not raise_error }
-      it { expect{command}.to output(a_string_including("No repositories found needed migration")).to_stdout }
+      it { expect{command}.to output(a_string_including("No migration required")).to_stdout }
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "bundler/setup"
 require "codeship_migrate_to_github_app"
 require "webmock/rspec"

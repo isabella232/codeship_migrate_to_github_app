@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thor"
 require "http"
 
@@ -61,7 +63,7 @@ module CodeshipMigrateToGithubApp
         # Call private api on Mothership, get pairs of installation_id/repo_id
         response = HTTP.headers(accept: CODESHIP_JSON_HEADER).auth("token #{@codeship_token}").get(CODESHIP_MIGRATION_INFO_URL)
         unless response.code == 200
-          raise Thor::Error.new "Error retreiving migration info from CodeShip: #{response.code}: #{response.to_s}"
+          raise Thor::Error.new "Error retrieving migration info from CodeShip: #{response.code}: #{response.to_s}"
         end
 
         @codeship_migration_info = response.parse
@@ -84,14 +86,15 @@ module CodeshipMigrateToGithubApp
 
       def report
         unless @errors.empty?
-          puts "Couldn't install the CodeShip Github app for some repositories"
+          puts "Couldn't install the CodeShip Github app for some repositories, please make the Github token you are \
+          using has admin rights to your Github organization. For help, contact supoprt at https://helpdesk.codeship.com"
           puts "Error migrating the following repos:"
           @errors.each do |repo_name|
-            puts repo_name
+            puts "\t#{repo_name}"
           end
         end
         if @codeship_migration_info.empty?
-          puts "No repositories found needed migration"
+          puts "No migration required"
         else
           puts "Migration complete!"
         end
