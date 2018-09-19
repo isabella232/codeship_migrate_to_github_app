@@ -26,7 +26,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
     {
         codeship_auth: "https://api.codeship.com/v2/auth",
         github_orgs: "https://api.github.com/user/orgs",
-        codeship_migration: "https://api.codeship.com/v2/github_migration_info",
+        codeship_migration: "https://api.codeship.com/v2/internal/github_app_migrations",
         github_install: Addressable::Template.new("https://api.github.com/user/installations/{installation_id}/repositories/{repository_id}")
    }
   end
@@ -80,7 +80,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       end
 
       it { expect{command}.to raise_error(SystemExit) }
-      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error retreiving migration info from CodeShip: 500")).to_stderr }
+      it { expect{begin; command; rescue SystemExit; end}.to output(a_string_including("Error retrieving migration info from CodeShip: 500")).to_stderr }
     end
 
     context "error performing migration on a repo" do

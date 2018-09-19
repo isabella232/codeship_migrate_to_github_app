@@ -12,7 +12,7 @@ module CodeshipMigrateToGithubApp
 
     CODESHIP_AUTH_URL = "https://api.codeship.com/v2/auth"
     GITHUB_ORGS_URL = "https://api.github.com/user/orgs"
-    CODESHIP_MIGRATION_INFO_URL = "https://api.codeship.com/v2/github_migration_info"
+    CODESHIP_MIGRATION_INFO_URL = "https://api.codeship.com/v2/internal/github_app_migrations"
     GITHUB_INSTALL_URL = "https://api.github.com/user/installations/{installation_id}/repositories/{repository_id}"
 
     attr_accessor :codeship_token, :github_org, :codeship_migration_info, :errors
