@@ -14,6 +14,8 @@ module CodeshipMigrateToGithubApp
     GITHUB_ORGS_URL = "https://api.github.com/user/orgs"
     CODESHIP_MIGRATION_INFO_URL = "https://api.codeship.com/v2/internal/github_app_migrations"
     GITHUB_INSTALL_URL = "https://api.github.com/user/installations/{installation_id}/repositories/{repository_id}"
+    GITHUB_LIST_HOOKS_URL = "https://api.github.com/repos/{owner}/{repo}/hooks"
+    GITHUB_DELETE_HOOK_URL = "https://api.github.com/repos/{owner}/{repo}/hooks/{hook_id}"
 
     attr_accessor :codeship_token, :github_org, :codeship_migration_info, :errors
 
@@ -77,6 +79,7 @@ module CodeshipMigrateToGithubApp
             unless response.code == 204
               @errors << repo["repository_name"]
             end
+            remove_legacy_service(repo["repository_name"])
           end
         end
       end
@@ -84,6 +87,44 @@ module CodeshipMigrateToGithubApp
       def github_install_url(installation_id, repo_id)
         GITHUB_INSTALL_URL.sub('{installation_id}', installation_id.to_s).sub('{repository_id}', repo_id.to_s)
       end
+
+      def remove_legacy_service(repo_name)
+        owner, repo = parse_repo_name(repo_name)
+
+        hook_id = find_legacy_codeship_hook(owner, repo)
+        if hook_id
+          delete_hook(owner, repo, hook_id)
+        end
+      end
+
+      def find_legacy_codeship_hook(owner, repo)
+        response = HTTP.headers(accept: GITHUB_JSON_HEADER)
+                       .auth("token #{@github_token}")
+                       .get(github_list_hooks_url(owner, repo))
+        hook = response.parse.find do |hook|
+          hook["name"] == 'codeship'
+        end
+        hook&.fetch("id")
+      end
+
+      def delete_hook(owner, repo, hook_id)
+        response = HTTP.headers(accept: GITHUB_JSON_HEADER)
+                       .auth("token #{@github_token}")
+                       .delete(github_delete_hook_url(owner, repo, hook_id))
+      end
+
+      def parse_repo_name(repo_name)
+         repo_name.split('/')
+      end
+
+      def github_list_hooks_url(owner, repo)
+        GITHUB_LIST_HOOKS_URL.sub('{owner}', owner).sub('{repo}', repo)
+      end
+
+      def github_delete_hook_url(owner, repo, hook_id)
+        GITHUB_DELETE_HOOK_URL.sub('{owner}', owner).sub('{repo}', repo).sub('{hook_id}', hook_id.to_s)
+      end
+
 
       def report
         unless @errors.empty?

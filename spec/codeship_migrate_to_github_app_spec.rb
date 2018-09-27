@@ -27,7 +27,8 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
         codeship_auth: "https://api.codeship.com/v2/auth",
         github_orgs: "https://api.github.com/user/orgs",
         codeship_migration: "https://api.codeship.com/v2/internal/github_app_migrations",
-        github_install: Addressable::Template.new("https://api.github.com/user/installations/{installation_id}/repositories/{repository_id}")
+        github_install: Addressable::Template.new("https://api.github.com/user/installations/{installation_id}/repositories/{repository_id}"),
+        github_hooks: Addressable::Template.new("https://api.github.com/repos/{owner}/{repo}/hooks")
    }
   end
 
@@ -37,6 +38,7 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       stub_request(:get, urls[:github_orgs]).to_return(status: 200, headers: JSON_TYPE, body: '[{"login": "joshco", "id": 123, "url": "https://api.github.com/orgs/joshco"}]')
       stub_request(:get, urls[:codeship_migration]).to_return(status: 200, headers: JSON_TYPE, body: '[{"installation_id":"123","repositories":[{"repository_id":"7777","repository_name":"foo/bar"},{"repository_id":"8888","repository_name":"foo/foo"}]},{"installation_id":"456","repositories":[{"repository_id":"9999","repository_name":"bar/bar"}]}]')
       stub_request(:put, urls[:github_install]).to_return(status: 204, headers: JSON_TYPE, body: '')
+      stub_request(:get, urls[:github_hooks]).to_return(status: 200, headers: JSON_TYPE, body: '[]')
     end
 
     context "valid arguments" do
@@ -44,6 +46,17 @@ RSpec.describe CodeshipMigrateToGithubApp::CLI do
       it { expect(command).to have_requested(:put, "https://api.github.com/user/installations/123/repositories/7777").once }
       it { expect(command).to have_requested(:put, "https://api.github.com/user/installations/123/repositories/8888").once }
       it { expect(command).to have_requested(:put, "https://api.github.com/user/installations/456/repositories/9999").once }
+      it { expect{command}.to output(a_string_including("Migration complete!")).to_stdout }
+    end
+
+    context "legacy hook exists" do
+      before(:each) do
+        stub_request(:get, urls[:github_hooks]).to_return({status: 200, headers: JSON_TYPE, body: '[{"type":"Repository","id":45678,"name":"codeship","active":true,"events":["push"],"config":{"project_uuid":"abc123"}}]'}, {status: 200, headers: JSON_TYPE, body: '[]'})
+        stub_request(:delete, "https://api.github.com/repos/foo/bar/hooks/45678").to_return({status: 204, headers: JSON_TYPE, body:''})
+      end
+
+      it { expect{command}.to_not raise_error }
+      it { expect(command).to have_requested(:delete, "https://api.github.com/repos/foo/bar/hooks/45678").once }
       it { expect{command}.to output(a_string_including("Migration complete!")).to_stdout }
     end
 
