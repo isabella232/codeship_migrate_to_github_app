@@ -73,12 +73,10 @@ module CodeshipMigrateToGithubApp
       def migrate
         @codeship_migration_info.each do |installation|
           installation["repositories"].each do |repo|
-            puts "DEBUG about to install to #{github_install_url(installation["installation_id"], repo["repository_id"])}"
             response = HTTP.headers(accept: GITHUB_INSTALLATIONS_PREVIEW_HEADER)
                            .auth("token #{@github_token}")
                            .put(github_install_url(installation["installation_id"], repo["repository_id"]))
             unless response.code == 204
-              puts "DEBUG an error installing app for #{repo["repository_name"]}, error code #{response.code}"
               @errors << repo["repository_name"]
             end
             remove_legacy_service(repo["repository_name"])
@@ -103,7 +101,6 @@ module CodeshipMigrateToGithubApp
         response = HTTP.headers(accept: GITHUB_JSON_HEADER)
                        .auth("token #{@github_token}")
                        .get(github_list_hooks_url(owner, repo))
-        puts "DEBUG looking for legacy hooks for #{owner} #{repo}, got #{response.code}"
         if response.code == 200
           hook = response.parse.find do |hook|
             hook["name"] == 'codeship'
@@ -116,7 +113,6 @@ module CodeshipMigrateToGithubApp
         response = HTTP.headers(accept: GITHUB_JSON_HEADER)
                        .auth("token #{@github_token}")
                        .delete(github_delete_hook_url(owner, repo, hook_id))
-        puts "DEBUG deleting hook, got a #{response.code}"
       end
 
       def parse_repo_name(repo_name)
