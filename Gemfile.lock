@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    codeship_migrate_to_github_app (0.1.1)
+    codeship_migrate_to_github_app (1.0.0)
       http (~> 3.3.0)
       thor (~> 0.20.0)
 
