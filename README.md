@@ -36,7 +36,7 @@ Give your token a descriptive name, click 'Generate token', and you'll be taken 
 
 For each GitHub organization containing repositories to migrate, you'll need to install the CodeShip GitHub App and add it to at least one repository.
 
-- Install the CodeShip GitHub App public for your organization by visiting  <https://github.com/apps/codeship/installations/new>
+- Install the CodeShip GitHub App for your organization by visiting  <https://github.com/apps/codeship/installations/new>
 - Select your organization
 - Under "Repository Access" select "Only select repositories", and choose at least one repository
 - Click save. You'll be redirected back to CodeShip and can safely close the browser window
