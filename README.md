@@ -1,8 +1,12 @@
 # CodeshipMigrateToGitHubApp
 
-This gem helps you migrate large numbers of projects on CodeShip from using legacy CodeShip GitHub service to the CodeShip GitHub App. For small numbers of projects, the migration wizard on https://codeship.com can help you migrate. However, there is a limit of 100 projects when migrating using the web UI. We've provided this gem to help users with more than 100 projects to migrate all at once.
+This gem helps you migrate large numbers of projects on CodeShip from using legacy GitHub Services to the CodeShip GitHub App. For small numbers of projects, the migration wizard on https://codeship.com can help you migrate. However, there is a limit of 100 projects when migrating using the web UI. We've provided this gem to help users with more than 100 projects to migrate all at once.
 
-Unlike the web interface, when using this gem you'll provide an access token to the GitHub API and the migration will be performed on a repository by repository basis on GitHub from your local machine.
+When using the gem, you'll need to provide an access token from GitHub for the gem to have the necessary access. The access token will never leave your local machine though, as everything the gem does is executed in your local environment. If you were to use the web UI, we have enough permissions via your user authentication to perform the migration without needing an access token
+
+### What's it do?
+
+First the gem will use the provided user credentials to obtain a list of projects from CodeShip that are using legacy GitHub Services. For each of these projects, the gem will use the provided GitHub personal access token to add the project's GitHub repository to the CodeShip GitHub App. Finally, any legacy Github Service for CodeShip will be removed from the GitHub repository.  Errors will be reported for any repository that can't be successfully migrated.
 
 ### Requirements
 
@@ -61,4 +65,4 @@ The gem is available as open source under the terms of the [MIT License](https:/
 
 ## Code of Conduct
 
-Everyone interacting in the CodeshipMigrateToGitHubApp project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/[USERNAME]/codeship_migrate_to_github_app/blob/master/CODE_OF_CONDUCT.md).
+Everyone interacting in the CodeshipMigrateToGitHubApp project’s codebases, issue trackers, chat rooms and mailing lists is expected to follow the [code of conduct](https://github.com/codeship/codeship_migrate_to_github_app/blob/master/CODE_OF_CONDUCT.md).
