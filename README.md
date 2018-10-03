@@ -32,6 +32,8 @@ Visit [this](https://github.com/settings/tokens) page to generate a personal acc
 
 Give your token a descriptive name, click 'Generate token', and you'll be taken to a page displaying your new token. Make a note of this token: it won't be displayed on GitHub again.
 
+![Personal access tokens](assets/personal_access_tokens.png)
+
 ## 3. Install the CodeShip GitHub App for a single repository in your GitHub organization
 
 For each GitHub organization containing repositories to migrate, you'll need to install the CodeShip GitHub App and add it to at least one repository.
@@ -41,7 +43,7 @@ For each GitHub organization containing repositories to migrate, you'll need to 
 - Under "Repository Access" select "Only select repositories", and choose at least one repository
 - Click save. You'll be redirected back to CodeShip and can safely close the browser window
 
-![Personal access tokens](assets/personal_access_tokens.png)
+![Repository access](assets/repo_access.png)
 
 ## 4. Run the migration via gem
 
